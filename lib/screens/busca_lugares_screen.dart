@@ -14,8 +14,8 @@ class BuscaLugaresScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Buscar Lugares'),
       ),
-      body: FutureBuilder(
-        future: lugarProvider.buscarLugares('', ''),
+      body: StreamBuilder<List<Lugar>>(
+        stream: lugarProvider.buscarLugaresStream('', ''),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

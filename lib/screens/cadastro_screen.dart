@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../utils/string_utils.dart';  // Importando o arquivo de utilitários
 
 class CadastroScreen extends StatefulWidget {
   const CadastroScreen({super.key});
@@ -65,6 +66,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
                 onPressed: () async {
                   if (_formKey.currentState?.validate() ?? false) {
                     try {
+                      final emailKey = emailToKey(_emailController.text);  // Usando a função de utilitário para converter o email
                       await authProvider.cadastrarUsuario(
                         _nameController.text,
                         _emailController.text,

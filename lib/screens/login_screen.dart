@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'cadastro_screen.dart';
+import '../utils/string_utils.dart'; // Importando o arquivo de utilitários
+import 'perfil_screen.dart'; // Certifique-se de importar a tela de perfil
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -55,11 +57,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () async {
                   if (_formKey.currentState?.validate() ?? false) {
                     try {
+                      final emailKey = emailToKey(_emailController.text);  // Usando a função de utilitário para converter o email
                       await authProvider.login(
                         _emailController.text,
                         _passwordController.text,
                       );
-                      Navigator.pushReplacementNamed(context, '/home');
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => PerfilScreen()),
+                      );
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Erro ao fazer login')),

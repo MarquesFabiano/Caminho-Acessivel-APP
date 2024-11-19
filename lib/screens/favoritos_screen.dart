@@ -14,8 +14,8 @@ class FavoritosScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Favoritos'),
       ),
-      body: FutureBuilder(
-        future: lugarProvider.buscarLugares('', ''),
+      body: StreamBuilder<List<Lugar>>(
+        stream: lugarProvider.buscarLugaresStream('', ''),  // Usando o stream do lugarProvider
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

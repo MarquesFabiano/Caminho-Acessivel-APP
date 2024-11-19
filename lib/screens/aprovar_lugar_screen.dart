@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/lugar.dart';
 import '../providers/lugar_provider.dart';
 
 class AprovarLugarScreen extends StatelessWidget {
@@ -13,8 +14,8 @@ class AprovarLugarScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Aprovar Lugares'),
       ),
-      body: FutureBuilder(
-        future: lugarProvider.buscarLugares('', ''),
+      body: StreamBuilder<List<Lugar>>(
+        stream: lugarProvider.buscarLugaresStream('', ''),  // Usando o stream do lugarProvider
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -35,7 +36,7 @@ class AprovarLugarScreen extends StatelessWidget {
                 trailing: IconButton(
                   icon: const Icon(Icons.check),
                   onPressed: () {
-                    lugarProvider.aprovarLugar(lugares[index].id);
+                    lugarProvider.aprovarLugar(lugares[index].id);  // Aprovar lugar
                   },
                 ),
               );

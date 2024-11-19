@@ -59,8 +59,7 @@ class _EditarLugarScreenState extends State<EditarLugarScreen> {
                   );
                   await lugarProvider.editarLugar(widget.lugar!.id, updatedLugar);
                 } else {
-                  // Aqui você pode tratar o caso de lugar ser null, talvez criar um novo
-                  // Caso você deseje criar um novo lugar, implemente a lógica para isso.
+                  // Caso você queira tratar criação de um novo lugar
                 }
                 Navigator.pop(context);
               },
