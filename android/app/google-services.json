@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1043863408228",
+    "firebase_url": "https://caminhoacessivel-a80a2-default-rtdb.firebaseio.com",
+    "project_id": "caminhoacessivel-a80a2",
+    "storage_bucket": "caminhoacessivel-a80a2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1043863408228:android:5e81b70cedffc2f05e9971",
+        "android_client_info": {
+          "package_name": "com.example.novoprojeto"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsFa7KIVzcaZ5uPEqTs1Pvh1xUIRa2jAw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
