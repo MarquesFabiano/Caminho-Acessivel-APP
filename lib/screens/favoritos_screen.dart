@@ -3,9 +3,14 @@ import 'package:flutter/material.dart';
 import '../models/lugar.dart';
 import '../providers/auth_provider.dart';
 import 'package:provider/provider.dart';
+import 'perfil_screen.dart';
+import 'busca_lugares_screen.dart';
+import '../widgets/bottom_navigation_bar.dart';
+
 
 class FavoritosScreen extends StatelessWidget {
   const FavoritosScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -27,7 +32,9 @@ class FavoritosScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Favoritos'),
+        backgroundColor: Colors.blue.shade700,
+        title: const Text('Favoritos', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
       ),
       body: StreamBuilder(
         stream: FirebaseDatabase.instance.ref('users/$userId/favoritos').onValue,
@@ -83,6 +90,20 @@ class FavoritosScreen extends StatelessWidget {
               );
             },
           );
+        },
+      ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: 3, // Ajuste conforme necessário
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, '/home');
+          } else if (index == 1) {
+            Navigator.pushReplacementNamed(context, '/editar');
+          } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/perfil');
+          } else if (index == 3) {
+            Navigator.pushReplacementNamed(context, '/favoritos');
+          }
         },
       ),
     );

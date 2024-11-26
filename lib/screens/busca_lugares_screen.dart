@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_database/firebase_database.dart';
 import '../widgets/bottom_navigation_bar.dart';
+import '../providers/auth_provider.dart'; // Importe o seu provider de autenticação
+import 'package:provider/provider.dart'; // Para acessar o provider
 
 class BuscaLugaresScreen extends StatefulWidget {
   const BuscaLugaresScreen({super.key});
@@ -16,6 +19,7 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
   bool _isLoading = false;
   List<dynamic> _lugares = [];
   String _errorMessage = '';  // Para exibir erros caso aconteçam
+  List<String> favoritos = []; // Lista para armazenar os lugares favoritos
 
   // Função de busca que vai chamar a API
   Future<void> _buscarLugares() async {
@@ -54,6 +58,61 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  // Função para favoritar o lugar
+  Future<void> _favoritarLugar(String lugarId, Map<String, dynamic> lugarInfo) async {
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Você precisa estar logado para favoritar lugares.')),
+      );
+      return;
+    }
+
+    final userId = user.uid;
+
+    try {
+      final favoritosRef = FirebaseDatabase.instance.ref('users/$userId/favoritos');
+      final favoritosSnapshot = await favoritosRef.get();
+
+      List<dynamic> favoritos = favoritosSnapshot.exists
+          ? List<dynamic>.from(favoritosSnapshot.value as List)
+          : [];
+
+      // Adiciona o lugar aos favoritos se não estiver lá
+      if (!favoritos.contains(lugarId)) {
+        favoritos.add(lugarId);
+        await favoritosRef.set(favoritos); // Atualiza o banco de dados
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Lugar favoritado com sucesso!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Este lugar já está nos seus favoritos.')),
+        );
+      }
+
+      setState(() {
+        this.favoritos = List<String>.from(favoritos);
+      });
+
+      // Cria o lugar no banco de dados caso ele não exista
+      final lugarRef = FirebaseDatabase.instance.ref('lugares/$lugarId');
+      final lugarSnapshot = await lugarRef.get();
+      if (!lugarSnapshot.exists) {
+        await lugarRef.set({
+          'id': lugarId,
+          'nome': lugarInfo['nome'],
+          'endereco': lugarInfo['endereco'],
+          'acessibilidade': lugarInfo['acessibilidade'] ?? 'Indefinido',
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao favoritar o lugar.')),
+      );
     }
   }
 
@@ -104,23 +163,41 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
                 itemCount: _lugares.length,
                 itemBuilder: (context, index) {
                   final lugar = _lugares[index];
+                  final lugarId = lugar['id'] ?? '';  // Fallback para um valor vazio caso 'id' seja nulo
+                  bool isFavorito = favoritos.contains(lugarId);
+                  final lugarInfo = {
+                    'nome': lugar['nome'],
+                    'endereco': lugar['endereco'],
+                    'acessibilidade': lugar['acessibilidade'], // Tipo de acessibilidade
+                  };
+
                   return Card(
                     elevation: 5,
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
                       title: Text(
-                        lugar['nome'],
+                        lugar['nome'] ?? 'Nome não disponível',  // Caso o nome seja nulo
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(lugar['endereco'] ?? 'Endereço não disponível'),
                       trailing: IconButton(
-                        icon: const Icon(Icons.favorite_border),
+                        icon: Icon(
+                          isFavorito ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorito ? Colors.red : Colors.black,
+                        ),
                         onPressed: () {
-                          // Lógica de faboritar, vai mandar pro db aqui hein
+                          if (lugarId.isNotEmpty) {  // Verifica se o id não é vazio
+                            _favoritarLugar(lugarId, lugarInfo);
+                            setState(() {});
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Erro: ID do lugar não encontrado.')),
+                            );
+                          }
                         },
                       ),
                       onTap: () {
-                        // Colocar a logica edição, que medo
+                        // Colocar a lógica de edição aqui
                       },
                     ),
                   );
@@ -131,7 +208,7 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
         ),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: 1, // Ajuste conforme necessário
+        currentIndex: 0,
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/home');

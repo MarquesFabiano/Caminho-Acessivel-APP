@@ -30,9 +30,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: onTap,
-        backgroundColor: Colors.blue.shade700, // Cor de fundo do BottomNavigationBar
-        selectedItemColor: Colors.black12, // Cor do ícone selecionado
-        unselectedItemColor: Colors.white70, // Cor do ícone não selecionado
+        backgroundColor: Colors.blue,
+        selectedItemColor: Colors.blue, // Cor do ícone selecionado
+        unselectedItemColor: Colors.black, // Cor do ícone não selecionado
         selectedLabelStyle: const TextStyle(fontSize: 12), // Ajuste do tamanho da fonte, se necessário
         unselectedLabelStyle: const TextStyle(fontSize: 12), // Ajuste para os itens não selecionados
         items: const [
