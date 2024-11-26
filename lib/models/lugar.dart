@@ -5,6 +5,7 @@ class Lugar {
   final List<String> tiposDeAcessibilidade;
   final bool aprovado;
   final double avaliacao;
+  String comentarios; // Novo campo para comentários
 
   Lugar({
     required this.id,
@@ -13,6 +14,7 @@ class Lugar {
     required this.tiposDeAcessibilidade,
     required this.aprovado,
     required this.avaliacao,
+    this.comentarios = '', // Campo de comentários com valor padrão
   });
 
   factory Lugar.fromMap(Map<String, dynamic> map) {
@@ -23,6 +25,7 @@ class Lugar {
       tiposDeAcessibilidade: List<String>.from(map['tiposDeAcessibilidade'] ?? []),
       aprovado: map['aprovado'] ?? false,
       avaliacao: map['avaliacao'] ?? 0.0,
+      comentarios: map['comentarios'] ?? '', // Novo campo para comentários
     );
   }
 
@@ -34,6 +37,7 @@ class Lugar {
       'tiposDeAcessibilidade': tiposDeAcessibilidade,
       'aprovado': aprovado,
       'avaliacao': avaliacao,
+      'comentarios': comentarios, // Incluir comentários ao salvar
     };
   }
 }

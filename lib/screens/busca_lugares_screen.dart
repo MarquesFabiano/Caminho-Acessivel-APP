@@ -1,41 +1,147 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../models/lugar.dart';
-import '../providers/lugar_provider.dart';
+import 'package:http/http.dart' as http;
+import '../widgets/bottom_navigation_bar.dart';
 
-class BuscaLugaresScreen extends StatelessWidget {
+class BuscaLugaresScreen extends StatefulWidget {
   const BuscaLugaresScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final lugarProvider = Provider.of<LugarProvider>(context);
+  _BuscaLugaresScreenState createState() => _BuscaLugaresScreenState();
+}
 
+class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
+  final TextEditingController _controller = TextEditingController();
+  String _termoBusca = '';
+  bool _isLoading = false;
+  List<dynamic> _lugares = [];
+  String _errorMessage = '';  // Para exibir erros caso aconteçam
+
+  // Função de busca que vai chamar a API
+  Future<void> _buscarLugares() async {
+    if (_termoBusca.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, insira um termo de busca.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';  // Limpa mensagens de erro anteriores
+    });
+
+    try {
+      // URL da sua função no Google Cloud para buscar os lugares
+      final response = await http.get(Uri.parse(
+          'https://us-central1-projetomapa-438017.cloudfunctions.net/buscarLugaresAcessiveis?lugar=${Uri.encodeComponent(_termoBusca)}'));
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _lugares = json.decode(response.body);
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Erro ao buscar lugares: ${response.body}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _lugares = [];
+        _errorMessage = 'Erro ao buscar lugares: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Buscar Lugares'),
+        title: const Text('Buscar Lugares Acessíveis'),
+        backgroundColor: Colors.blue[800],
       ),
-      body: StreamBuilder<List<Lugar>>(
-        stream: lugarProvider.buscarLugaresStream('', ''),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _controller,
+              onChanged: (value) {
+                setState(() {
+                  _termoBusca = value;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Buscar por nome de lugar',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: _buscarLugares,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.blue),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            if (_isLoading) const CircularProgressIndicator(),
+            if (!_isLoading && _lugares.isEmpty && _errorMessage.isEmpty)
+              const Text('Nenhum lugar encontrado.'),
+            if (_errorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  _errorMessage,
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                ),
+              ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _lugares.length,
+                itemBuilder: (context, index) {
+                  final lugar = _lugares[index];
+                  return Card(
+                    elevation: 5,
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      title: Text(
+                        lugar['nome'],
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(lugar['endereco'] ?? 'Endereço não disponível'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.favorite_border),
+                        onPressed: () {
+                          // Lógica de faboritar, vai mandar pro db aqui hein
+                        },
+                      ),
+                      onTap: () {
+                        // Colocar a logica edição, que medo
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: 1, // Ajuste conforme necessário
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, '/home');
+          } else if (index == 1) {
+            Navigator.pushReplacementNamed(context, '/editar');
+          } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/perfil');
+          } else if (index == 3) {
+            Navigator.pushReplacementNamed(context, '/favoritos');
           }
-
-          if (snapshot.hasError) {
-            return const Center(child: Text('Erro ao carregar lugares'));
-          }
-
-          final lugares = snapshot.data ?? [];
-
-          return ListView.builder(
-            itemCount: lugares.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(lugares[index].name),
-                subtitle: Text(lugares[index].formattedAddress),
-              );
-            },
-          );
         },
       ),
     );
