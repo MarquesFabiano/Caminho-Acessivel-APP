@@ -10,6 +10,9 @@ import 'screens/perfil_screen.dart';
 import 'screens/aprovar_lugar_screen.dart';
 import 'screens/editar_lugar_screen.dart';
 import 'screens/cadastro_screen.dart';
+import 'screens/mapa_screen.dart';
+import 'screens/adicionar_lugar_screen.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart'; // Importando Google Maps
 
 void main() async {
   // Garante que o Firebase seja inicializado antes de rodar o app
@@ -43,7 +46,10 @@ class MyApp extends StatelessWidget {
           '/favoritos': (context) => const FavoritosScreen(),
           '/perfil': (context) => PerfilScreen(),
           '/aprovar': (context) => const AprovarLugarScreen(),
-          '/editar': (context) => const EditarLugarScreen(),
+          '/editar': (context) => EditarLugarScreen(
+            latLng: ModalRoute.of(context)?.settings.arguments as LatLng ?? LatLng(0.0, 0.0),
+          ),
+          '/mapa': (context) => const MapaScreen(),
         },
       ),
     );

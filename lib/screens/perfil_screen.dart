@@ -116,7 +116,7 @@ class PerfilScreen extends StatelessWidget {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/home');
           } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/editar');
+            Navigator.pushReplacementNamed(context, '/mapa');
           } else if (index == 2) {
             Navigator.pushReplacementNamed(context, '/perfil');
           } else if (index == 3) {
@@ -140,9 +140,9 @@ class PerfilScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.star_border, // Ícone genérico, pode ser alterado conforme o contexto
+              Icons.star_border,
               size: 30,
-              color: Colors.blue, // Cor para combinar com o design
+              color: Colors.blue,
             ),
             const SizedBox(width: 10),
             Text(
