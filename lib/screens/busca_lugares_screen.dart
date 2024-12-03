@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_database/firebase_database.dart';
 import '../widgets/bottom_navigation_bar.dart';
-import '../providers/auth_provider.dart'; // Importe o seu provider de autenticação
-import 'package:provider/provider.dart'; // Para acessar o provider
+import '../providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class BuscaLugaresScreen extends StatefulWidget {
   const BuscaLugaresScreen({super.key});
@@ -18,10 +18,9 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
   String _termoBusca = '';
   bool _isLoading = false;
   List<dynamic> _lugares = [];
-  String _errorMessage = '';  // Para exibir erros caso aconteçam
-  List<String> favoritos = []; // Lista para armazenar os lugares favoritos
+  String _errorMessage = '';
+  List<String> favoritos = [];
 
-  // Função de busca que vai chamar a API
   Future<void> _buscarLugares() async {
     if (_termoBusca.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -32,11 +31,10 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
 
     setState(() {
       _isLoading = true;
-      _errorMessage = '';  // Limpa mensagens de erro anteriores
+      _errorMessage = '';
     });
 
     try {
-      // URL da sua função no Google Cloud para buscar os lugares
       final response = await http.get(Uri.parse(
           'https://us-central1-projetomapa-438017.cloudfunctions.net/buscarLugaresAcessiveis?lugar=${Uri.encodeComponent(_termoBusca)}'));
 
@@ -61,12 +59,13 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
     }
   }
 
-  // Função para favoritar o lugar
-  Future<void> _favoritarLugar(String lugarId, Map<String, dynamic> lugarInfo) async {
+  Future<void> _favoritarLugar(
+      String placeId, Map<String, dynamic> lugarInfo) async {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você precisa estar logado para favoritar lugares.')),
+        const SnackBar(
+            content: Text('Você precisa estar logado para favoritar lugares.')),
       );
       return;
     }
@@ -74,23 +73,24 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
     final userId = user.uid;
 
     try {
-      final favoritosRef = FirebaseDatabase.instance.ref('users/$userId/favoritos');
+      final favoritosRef =
+          FirebaseDatabase.instance.ref('users/$userId/favoritos');
       final favoritosSnapshot = await favoritosRef.get();
 
       List<dynamic> favoritos = favoritosSnapshot.exists
           ? List<dynamic>.from(favoritosSnapshot.value as List)
           : [];
 
-      // Adiciona o lugar aos favoritos se não estiver lá
-      if (!favoritos.contains(lugarId)) {
-        favoritos.add(lugarId);
-        await favoritosRef.set(favoritos); // Atualiza o banco de dados
+      if (!favoritos.contains(placeId)) {
+        favoritos.add(placeId);
+        await favoritosRef.set(favoritos);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Lugar favoritado com sucesso!')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Este lugar já está nos seus favoritos.')),
+          const SnackBar(
+              content: Text('Este lugar já está nos seus favoritos.')),
         );
       }
 
@@ -98,12 +98,11 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
         this.favoritos = List<String>.from(favoritos);
       });
 
-      // Cria o lugar no banco de dados caso ele não exista
-      final lugarRef = FirebaseDatabase.instance.ref('lugares/$lugarId');
+      final lugarRef = FirebaseDatabase.instance.ref('lugares/$placeId');
       final lugarSnapshot = await lugarRef.get();
       if (!lugarSnapshot.exists) {
         await lugarRef.set({
-          'id': lugarId,
+          'place_id': placeId,
           'nome': lugarInfo['nome'],
           'endereco': lugarInfo['endereco'],
           'acessibilidade': lugarInfo['acessibilidade'] ?? 'Indefinido',
@@ -163,12 +162,12 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
                 itemCount: _lugares.length,
                 itemBuilder: (context, index) {
                   final lugar = _lugares[index];
-                  final lugarId = lugar['id'] ?? '';  // Fallback para um valor vazio caso 'id' seja nulo
-                  bool isFavorito = favoritos.contains(lugarId);
+                  final placeId = lugar['place_id'] ?? '';
+                  bool isFavorito = favoritos.contains(placeId);
                   final lugarInfo = {
                     'nome': lugar['nome'],
                     'endereco': lugar['endereco'],
-                    'acessibilidade': lugar['acessibilidade'], // Tipo de acessibilidade
+                    'acessibilidade': lugar['acessibilidade'],
                   };
 
                   return Card(
@@ -176,28 +175,31 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
                       title: Text(
-                        lugar['nome'] ?? 'Nome não disponível',  // Caso o nome seja nulo
+                        lugar['nome'] ?? 'Nome não disponível',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text(lugar['endereco'] ?? 'Endereço não disponível'),
+                      subtitle:
+                          Text(lugar['endereco'] ?? 'Endereço não disponível'),
                       trailing: IconButton(
                         icon: Icon(
                           isFavorito ? Icons.favorite : Icons.favorite_border,
                           color: isFavorito ? Colors.red : Colors.black,
                         ),
                         onPressed: () {
-                          if (lugarId.isNotEmpty) {  // Verifica se o id não é vazio
-                            _favoritarLugar(lugarId, lugarInfo);
+                          if (placeId.isNotEmpty) {
+                            _favoritarLugar(placeId, lugarInfo);
                             setState(() {});
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Erro: ID do lugar não encontrado.')),
+                              const SnackBar(
+                                  content: Text(
+                                      'Erro: Place ID do lugar não encontrado.')),
                             );
                           }
                         },
                       ),
                       onTap: () {
-                        // Colocar a lógica de edição aqui
+                        // Lógica de navegação ou edição
                       },
                     ),
                   );

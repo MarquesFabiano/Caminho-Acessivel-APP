@@ -6,14 +6,19 @@ class LugarProvider with ChangeNotifier {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
 
   // Função para buscar lugares com base no termo de busca e localização
-  Stream<List<Lugar>> buscarLugaresStream(String termoDeBusca, String localizacao) {
-    return _database.child('lugares').orderByChild('name')
-        .startAt(termoDeBusca).endAt(termoDeBusca + '\uf8ff')
+  Stream<List<Lugar>> buscarLugaresStream(
+      String termoDeBusca, String localizacao) {
+    return _database
+        .child('lugares')
+        .orderByChild('name')
+        .startAt(termoDeBusca)
+        .endAt(termoDeBusca + '\uf8ff')
         .onValue
         .map((event) {
       List<Lugar> lugares = [];
       if (event.snapshot.value != null) {
-        Map<dynamic, dynamic> lugaresMap = event.snapshot.value as Map<dynamic, dynamic>;
+        Map<dynamic, dynamic> lugaresMap =
+            event.snapshot.value as Map<dynamic, dynamic>;
         lugaresMap.forEach((key, value) {
           Lugar lugar = Lugar.fromMap(Map<String, dynamic>.from(value));
           lugares.add(lugar);
@@ -26,7 +31,10 @@ class LugarProvider with ChangeNotifier {
   // Função de aprovar lugar
   Future<void> aprovarLugar(String lugarId) async {
     try {
-      await _database.child('lugares').child(lugarId).update({'aprovado': true});
+      await _database
+          .child('lugares')
+          .child(lugarId)
+          .update({'aprovado': true});
     } catch (e) {
       throw Exception('Erro ao aprovar lugar: $e');
     }
@@ -46,7 +54,10 @@ class LugarProvider with ChangeNotifier {
   // Função de editar lugar
   Future<void> editarLugar(String lugarId, Lugar novosDados) async {
     try {
-      await _database.child('lugares').child(lugarId).update(novosDados.toMap());
+      await _database
+          .child('lugares')
+          .child(lugarId)
+          .update(novosDados.toMap());
     } catch (e) {
       throw Exception('Erro ao editar lugar: $e');
     }
@@ -76,7 +87,8 @@ class LugarProvider with ChangeNotifier {
     return _database.child('favoritos').onValue.map((event) {
       List<Lugar> lugares = [];
       if (event.snapshot.value != null) {
-        Map<dynamic, dynamic> favoritosMap = event.snapshot.value as Map<dynamic, dynamic>;
+        Map<dynamic, dynamic> favoritosMap =
+            event.snapshot.value as Map<dynamic, dynamic>;
         favoritosMap.forEach((key, value) {
           Lugar lugar = Lugar.fromMap(Map<String, dynamic>.from(value));
           lugares.add(lugar);

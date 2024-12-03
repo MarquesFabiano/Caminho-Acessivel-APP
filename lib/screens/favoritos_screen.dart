@@ -7,7 +7,6 @@ import 'perfil_screen.dart';
 import 'busca_lugares_screen.dart';
 import '../widgets/bottom_navigation_bar.dart';
 
-
 class FavoritosScreen extends StatelessWidget {
   const FavoritosScreen({super.key});
 
@@ -37,7 +36,8 @@ class FavoritosScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: StreamBuilder(
-        stream: FirebaseDatabase.instance.ref('users/$userId/favoritos').onValue,
+        stream:
+            FirebaseDatabase.instance.ref('users/$userId/favoritos').onValue,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -47,8 +47,15 @@ class FavoritosScreen extends StatelessWidget {
             return Center(child: Text('Nenhum favorito encontrado.'));
           }
 
-          List<dynamic> favoritos = snapshot.data!.snapshot.value as List<dynamic>;
-          favoritos = favoritos.where((id) => id != null).toList(); // Remove valores nulos
+          // Verifique se o valor é realmente um mapa
+          final favoritosMap = snapshot.data!.snapshot.value;
+          List<dynamic> favoritos = [];
+
+          // Se for um mapa (como esperado do Firebase), converta para uma lista
+          if (favoritosMap is Map) {
+            favoritos = favoritosMap.keys
+                .toList(); // Obtém as chaves (IDs dos lugares favoritos)
+          }
 
           return StreamBuilder(
             stream: FirebaseDatabase.instance.ref('lugares').onValue,
@@ -57,17 +64,25 @@ class FavoritosScreen extends StatelessWidget {
                 return Center(child: CircularProgressIndicator());
               }
 
-              if (!lugaresSnapshot.hasData || lugaresSnapshot.data!.snapshot.value == null) {
+              if (!lugaresSnapshot.hasData ||
+                  lugaresSnapshot.data!.snapshot.value == null) {
                 return Center(child: Text('Nenhum lugar encontrado.'));
               }
 
-              List<dynamic> lugares = lugaresSnapshot.data!.snapshot.value as List<dynamic>;
-              lugares = lugares.where((lugar) => lugar != null).toList(); // Remove valores nulos
+              List<dynamic> lugares = [];
+              final lugaresMap = lugaresSnapshot.data!.snapshot.value;
+
+              // Verifique se o valor é um mapa (como esperado do Firebase)
+              if (lugaresMap is Map) {
+                lugares = lugaresMap.values
+                    .toList(); // Obtém os valores (dados dos lugares)
+              }
 
               // Filtrar os lugares que estão nos favoritos
               List<Lugar> lugaresFavoritos = lugares
                   .where((lugar) => favoritos.contains(lugar['id']))
-                  .map((lugar) => Lugar.fromMap(Map<String, dynamic>.from(lugar)))
+                  .map((lugar) =>
+                      Lugar.fromMap(Map<String, dynamic>.from(lugar)))
                   .toList();
 
               if (lugaresFavoritos.isEmpty) {
