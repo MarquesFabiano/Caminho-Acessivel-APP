@@ -34,10 +34,10 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.share_location,
-                  size: 100,
-                  color: Colors.blue,
+                Image.asset(
+                  'lib/assets/icon.png',
+                  width: 200, // Aumentando o tamanho da imagem
+                  height: 200,
                 ),
                 const SizedBox(height: 20),
                 Text(
@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: const Text(
                           'Entrar',
-                          style: TextStyle(fontSize: 18),
+                          style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -157,9 +157,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         style: TextButton.styleFrom(
                           backgroundColor: Colors.blue.shade700,
-                          textStyle: const TextStyle(fontSize: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
                         ),
-                        child: const Text('Não tem uma conta? Cadastre-se'),
+                        child: const Text(
+                          'Não tem uma conta? Cadastre-se',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
                       ),
                     ],
                   ),

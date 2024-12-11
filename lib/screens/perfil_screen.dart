@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import '../widgets/bottom_navigation_bar.dart'; // Importando o widget
+import '../widgets/bottom_navigation_bar.dart';
 
 class PerfilScreen extends StatelessWidget {
   @override
@@ -12,7 +12,7 @@ class PerfilScreen extends StatelessWidget {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Perfil'),
-          backgroundColor: Colors.blue, // Cor mais condizente com o tema
+          backgroundColor: Colors.blue,
         ),
         body: const Center(
           child: Text('Usuário não autenticado.'),
@@ -27,7 +27,7 @@ class PerfilScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Perfil'),
         centerTitle: true,
-        backgroundColor: Colors.blue, // Cor consistente
+        backgroundColor: Colors.blue,
       ),
       body: StreamBuilder(
         stream: userRef.onValue,
@@ -82,7 +82,6 @@ class PerfilScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
 
-                  // Exibindo estatísticas do usuário
                   _buildStatCard('Favoritos', favoritosCount),
                   const SizedBox(height: 10),
                   _buildStatCard('Comentários', comentariosCount),
@@ -96,7 +95,7 @@ class PerfilScreen extends StatelessWidget {
                     },
                     child: const Text('Sair'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue, // Substituindo 'primary' por 'backgroundColor'
+                      backgroundColor: Colors.blue,
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                       textStyle: const TextStyle(fontSize: 16),
                       shape: RoundedRectangleBorder(
@@ -127,7 +126,6 @@ class PerfilScreen extends StatelessWidget {
     );
   }
 
-  // Função para criar cards com as estatísticas do usuário
   Widget _buildStatCard(String title, int count) {
     return Card(
       elevation: 5,

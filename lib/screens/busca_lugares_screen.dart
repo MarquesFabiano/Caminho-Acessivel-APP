@@ -215,7 +215,7 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/home');
           } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/editar');
+            Navigator.pushReplacementNamed(context, '/mapa');
           } else if (index == 2) {
             Navigator.pushReplacementNamed(context, '/perfil');
           } else if (index == 3) {
