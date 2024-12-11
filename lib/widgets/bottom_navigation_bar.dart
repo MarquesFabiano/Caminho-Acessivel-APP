@@ -41,8 +41,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
             label: 'Buscar',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.edit),
-            label: 'Editar',
+            icon: Icon(Icons.map),
+            label: 'Mapa',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

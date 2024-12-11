@@ -12,7 +12,7 @@ class PerfilScreen extends StatelessWidget {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Perfil'),
-          backgroundColor: Colors.blue,
+          backgroundColor: Colors.purple,
         ),
         body: const Center(
           child: Text('Usuário não autenticado.'),
@@ -27,7 +27,7 @@ class PerfilScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Perfil'),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.purple,
       ),
       body: StreamBuilder(
         stream: userRef.onValue,
@@ -52,7 +52,6 @@ class PerfilScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Foto de perfil
                   CircleAvatar(
                     radius: 80,
                     backgroundImage: user.photoURL != null
@@ -61,8 +60,6 @@ class PerfilScreen extends StatelessWidget {
                     backgroundColor: Colors.grey[200],
                   ),
                   const SizedBox(height: 20),
-
-                  // Nome do usuário
                   Text(
                     userData['name'] ?? 'Nome não disponível',
                     style: const TextStyle(
@@ -71,8 +68,6 @@ class PerfilScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  // E-mail do usuário
                   Text(
                     userData['email'] ?? 'E-mail não disponível',
                     style: const TextStyle(
@@ -81,13 +76,12 @@ class PerfilScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 30),
-
-                  _buildStatCard('Favoritos', favoritosCount),
+                  _buildStatCard(
+                      context, 'Favoritos', favoritosCount, '/favoritos'),
                   const SizedBox(height: 10),
-                  _buildStatCard('Comentários', comentariosCount),
+                  _buildStatCard(
+                      context, 'Comentários', comentariosCount, '/comentarios'),
                   const SizedBox(height: 30),
-
-                  // Botão de logout
                   ElevatedButton(
                     onPressed: () async {
                       await FirebaseAuth.instance.signOut();
@@ -95,7 +89,7 @@ class PerfilScreen extends StatelessWidget {
                     },
                     child: const Text('Sair'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Colors.purple,
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                       textStyle: const TextStyle(fontSize: 16),
                       shape: RoundedRectangleBorder(
@@ -110,7 +104,7 @@ class PerfilScreen extends StatelessWidget {
         },
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: 2, // Índice para a tela de perfil
+        currentIndex: 2,
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/home');
@@ -126,31 +120,37 @@ class PerfilScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, int count) {
-    return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.star_border,
-              size: 30,
-              color: Colors.blue,
-            ),
-            const SizedBox(width: 10),
-            Text(
-              '$title: $count',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
+  Widget _buildStatCard(BuildContext context, String title, int count, String route) {
+    return GestureDetector(
+      onTap: () {
+        // Ao clicar no card, navega para a tela de favoritos
+        Navigator.pushNamed(context, route);
+      },
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                title == 'Favoritos' ? Icons.star_border : Icons.comment,
+                size: 30,
+                color: Colors.purple,
               ),
-            ),
-          ],
+              const SizedBox(width: 10),
+              Text(
+                '$title: $count',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

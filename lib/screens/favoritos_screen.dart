@@ -15,7 +15,6 @@ class FavoritosScreen extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
 
-    // Verifica se o usuário está autenticado
     if (user == null) {
       return Scaffold(
         appBar: AppBar(
@@ -36,8 +35,7 @@ class FavoritosScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: StreamBuilder(
-        stream:
-            FirebaseDatabase.instance.ref('users/$userId/favoritos').onValue,
+        stream: FirebaseDatabase.instance.ref('users/$userId/favoritos').onValue,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -47,14 +45,11 @@ class FavoritosScreen extends StatelessWidget {
             return Center(child: Text('Nenhum favorito encontrado.'));
           }
 
-          // Verifique se o valor é realmente um mapa
           final favoritosMap = snapshot.data!.snapshot.value;
           List<dynamic> favoritos = [];
 
-          // Se for um mapa (como esperado do Firebase), converta para uma lista
           if (favoritosMap is Map) {
-            favoritos = favoritosMap.keys
-                .toList(); // Obtém as chaves (IDs dos lugares favoritos)
+            favoritos = favoritosMap.keys.toList();
           }
 
           return StreamBuilder(
@@ -72,17 +67,13 @@ class FavoritosScreen extends StatelessWidget {
               List<dynamic> lugares = [];
               final lugaresMap = lugaresSnapshot.data!.snapshot.value;
 
-              // Verifique se o valor é um mapa (como esperado do Firebase)
               if (lugaresMap is Map) {
-                lugares = lugaresMap.values
-                    .toList(); // Obtém os valores (dados dos lugares)
+                lugares = lugaresMap.values.toList();
               }
 
-              // Filtrar os lugares que estão nos favoritos
               List<Lugar> lugaresFavoritos = lugares
                   .where((lugar) => favoritos.contains(lugar['id']))
-                  .map((lugar) =>
-                      Lugar.fromMap(Map<String, dynamic>.from(lugar)))
+                  .map((lugar) => Lugar.fromMap(Map<String, dynamic>.from(lugar)))
                   .toList();
 
               if (lugaresFavoritos.isEmpty) {
@@ -108,7 +99,7 @@ class FavoritosScreen extends StatelessWidget {
         },
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: 3, // Ajuste conforme necessário
+        currentIndex: 3,
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/home');

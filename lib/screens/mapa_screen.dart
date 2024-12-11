@@ -1,10 +1,9 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:math' as Math;
-import 'editar_lugar_screen.dart';
-import 'lugares_proximos_screen.dart';
+import 'detalhes_screen.dart';
 
 class MapaScreen extends StatefulWidget {
   const MapaScreen({Key? key}) : super(key: key);
@@ -17,7 +16,7 @@ class _MapaScreenState extends State<MapaScreen> {
   late GoogleMapController mapController;
   LatLng _currentLocation = const LatLng(0.0, 0.0);
   Set<Marker> _markers = Set();
-  List<Map<String, dynamic>> _lugaresProximos = [];
+  double _radius = 5000.0; // Raio de 5 km
 
   @override
   void initState() {
@@ -37,7 +36,6 @@ class _MapaScreenState extends State<MapaScreen> {
         setState(() {
           _currentLocation = LatLng(position.latitude, position.longitude);
         });
-        _buscarLugaresProximos(position.latitude, position.longitude);
         _carregarLugaresNoMapa();
       }
     } else {
@@ -45,47 +43,7 @@ class _MapaScreenState extends State<MapaScreen> {
     }
   }
 
-  void _buscarLugaresProximos(double latitude, double longitude) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-    double raio = 10.0;
-    double rad = 0.017453292519943295;
-    double lat1 = latitude;
-    double lon1 = longitude;
-
-    QuerySnapshot snapshot = await firestore.collection('lugares').get();
-    List<Map<String, dynamic>> lugaresProximos = [];
-
-    for (var doc in snapshot.docs) {
-      if (doc['aprovado'] == true) {
-        double lat2 = doc['latitude'];
-        double lon2 = doc['longitude'];
-
-        double dlat = (lat2 - lat1) * rad;
-        double dlon = (lon2 - lon1) * rad;
-        double a = (0.5 - (0.5 * (Math.cos(dlat) - Math.cos(dlon))));
-        double c = 2 * Math.asin(Math.sqrt(a));
-        double distancia = 6371 * c;
-
-        if (distancia <= raio) {
-          lugaresProximos.add({
-            'nome': doc['nome'],
-            'endereco': doc['endereco'],
-            'latitude': lat2,
-            'longitude': lon2,
-            'distancia': distancia,
-            'id': doc.id
-          });
-        }
-      }
-    }
-
-    setState(() {
-      _lugaresProximos = lugaresProximos.take(3).toList();
-    });
-  }
-
-  void _carregarLugaresNoMapa() async {
+  Future<void> _carregarLugaresNoMapa() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     QuerySnapshot snapshot = await firestore.collection('lugares').get();
 
@@ -93,48 +51,42 @@ class _MapaScreenState extends State<MapaScreen> {
       if (doc['aprovado'] == true) {
         double lat = doc['latitude'];
         double lon = doc['longitude'];
-        String nome = doc['nome'];
-        String id = doc.id;
+        double distance = _calcularDistancia(_currentLocation.latitude, _currentLocation.longitude, lat, lon);
 
-        setState(() {
-          _markers.add(Marker(
-            markerId: MarkerId(id),
-            position: LatLng(lat, lon),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-            onTap: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditarLugarScreen(latLng: LatLng(lat, lon)),
-                ),
-              );
-            },
-          ));
-        });
+        if (distance <= _radius) {
+          String id = doc.id;
+
+          setState(() {
+            _markers.add(Marker(
+              markerId: MarkerId(id),
+              position: LatLng(lat, lon),
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DetalhesLugarScreen(latLng: LatLng(lat, lon), idLugar: id),
+                  ),
+                );
+              },
+            ));
+          });
+        }
       }
     }
   }
 
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+  double _calcularDistancia(double lat1, double lon1, double lat2, double lon2) {
+    const double pi = 3.1415926535897932;
+    const double rad = pi / 180.0;
+    double dLat = (lat2 - lat1) * rad;
+    double dLon = (lon2 - lon1) * rad;
+    double a = (0.5 - (cos(dLat) / 2.0)) + cos(lat1 * rad) * cos(lat2 * rad) * (1 - cos(dLon)) / 2.0;
+    return 12742.0 * asin(sqrt(a)) * 1000; // Resultado em metros
   }
 
-  void _onTap(LatLng latLng) {
-    String markerId = latLng.toString();
-    setState(() {
-      _markers.add(Marker(
-        markerId: MarkerId(markerId),
-        position: latLng,
-        onTap: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EditarLugarScreen(latLng: latLng),
-            ),
-          );
-        },
-      ));
-    });
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
   }
 
   @override
@@ -143,17 +95,6 @@ class _MapaScreenState extends State<MapaScreen> {
       appBar: AppBar(
         title: const Text('Mapa'),
         backgroundColor: Colors.blue,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.location_searching),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LugaresProximosScreen()),
-              );
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -166,30 +107,11 @@ class _MapaScreenState extends State<MapaScreen> {
                 zoom: 14.0,
               ),
               markers: _markers,
-              onTap: _onTap,
               myLocationEnabled: true,
               myLocationButtonEnabled: true,
             ),
           )
               : const Center(child: CircularProgressIndicator()),
-          _lugaresProximos.isNotEmpty
-              ? Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Card(
-              child: ListTile(
-                title: const Text('Lugares mais próximos'),
-                subtitle: Column(
-                  children: _lugaresProximos.map((lugar) {
-                    return ListTile(
-                      title: Text(lugar['nome'] ?? 'Nome desconhecido'),
-                      subtitle: Text('Distância: ${lugar['distancia']} km'),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          )
-              : const SizedBox.shrink(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -223,7 +145,9 @@ class _MapaScreenState extends State<MapaScreen> {
             label: 'Favoritos',
           ),
         ],
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey,
       ),
     );
   }

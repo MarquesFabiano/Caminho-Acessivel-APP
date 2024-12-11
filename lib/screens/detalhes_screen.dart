@@ -76,7 +76,7 @@ class _DetalhesLugarScreenState extends State<DetalhesLugarScreen> {
 
   Future<void> _buscarDetalhesNoGoogle(String nome, String endereco) async {
     final query = '$nome $endereco';
-    final url = Uri.parse('https://maps.googleapis.com/maps/api/place/textsearch/json?query=$query&key=AIzaSyDEYRZGL1eA_DhKhE6zz_1-jAOCKNtS2oQ');
+    final url = Uri.parse('https://maps.googleapis.com/maps/api/place/textsearch/json?query=$query&key=YOUR_GOOGLE_API_KEY');
 
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -91,7 +91,7 @@ class _DetalhesLugarScreenState extends State<DetalhesLugarScreen> {
 
   Future<void> _salvarDetalhes() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    final user = 'usuario_logado_id';
+    final user = 'usuario_logado_id'; // Substitua pelo ID do usuário logado
 
     await firestore.collection('acessibilidade_lugares').doc(widget.idLugar).set({
       'usuario_salvou': user,
@@ -134,10 +134,7 @@ class _DetalhesLugarScreenState extends State<DetalhesLugarScreen> {
             DropdownButtonFormField<String>(
               value: _acessibilidadeText.isNotEmpty ? _acessibilidadeText : null,
               items: _tiposDeAcessibilidade.map((String tipo) {
-                return DropdownMenuItem<String>(
-                  value: tipo,
-                  child: Text(tipo),
-                );
+                return DropdownMenuItem<String>(value: tipo, child: Text(tipo));
               }).toList(),
               onChanged: (value) {
                 setState(() {
