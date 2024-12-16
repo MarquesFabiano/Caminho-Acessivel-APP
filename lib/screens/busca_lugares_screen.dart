@@ -5,7 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../widgets/bottom_navigation_bar.dart';
 import '../providers/auth_provider.dart';
-import 'detalhes_screen.dart'; // Importe a tela de detalhes
+import 'detalhes_screen.dart';
 
 class BuscaLugaresScreen extends StatefulWidget {
   const BuscaLugaresScreen({super.key});
@@ -20,27 +20,26 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
   String _errorMessage = '';
   TextEditingController _searchController = TextEditingController();
 
-  // Método para buscar lugares, agora com os dois tipos de busca
   Future<void> _buscarLugares(double latitude, double longitude, {String? query}) async {
     setState(() {
       _isLoading = true;
-      _errorMessage = ''; // Reseta a mensagem de erro
+      _errorMessage = '';
     });
 
     final String url = query == null
-        ? 'https://maps.googleapis.com/maps/api/place/nearbysearch/json' // Para busca por localização
-        : 'https://maps.googleapis.com/maps/api/place/textsearch/json'; // Para busca por texto
+        ? 'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
+        : 'https://maps.googleapis.com/maps/api/place/textsearch/json';
 
     try {
       final response = await http.get(
         Uri.parse(url).replace(queryParameters: query == null
             ? {
-          'location': '$latitude,$longitude', // Localização (latitude, longitude)
-          'radius': '10000', // Raio de 10 km
+          'location': '$latitude,$longitude',
+          'radius': '10000',
           'key': 'AIzaSyDEYRZGL1eA_DhKhE6zz_1-jAOCKNtS2oQ'
         }
             : {
-          'query': query ?? '', // Adiciona a query de busca
+          'query': query ?? '',
           'key': 'AIzaSyDEYRZGL1eA_DhKhE6zz_1-jAOCKNtS2oQ'
         }),
       );
@@ -74,11 +73,10 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
     }
   }
 
-  // Método para obter a localização do usuário
   Future<void> _getUserLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      _buscarLugares(position.latitude, position.longitude); // Busca locais ao obter a posição
+      _buscarLugares(position.latitude, position.longitude);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -88,7 +86,6 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
     }
   }
 
-  // Navega para a tela de detalhes
   void _navegarParaDetalhes(Map<String, dynamic> lugar) {
     Navigator.pushNamed(context, '/detalhes_screen', arguments: lugar);
   }
@@ -96,7 +93,7 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
   @override
   void initState() {
     super.initState();
-    _getUserLocation(); // Pega a localização ao carregar a tela
+    _getUserLocation();
   }
 
   @override
@@ -108,7 +105,7 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.location_searching),
-            onPressed: _getUserLocation, // Recarrega os lugares com a localização atual
+            onPressed: _getUserLocation,
           )
         ],
       ),
@@ -117,7 +114,6 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Campo de busca por texto
             TextField(
               controller: _searchController,
               decoration: const InputDecoration(
@@ -133,9 +129,9 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
               ),
               onChanged: (text) {
                 if (text.isEmpty) {
-                  _getUserLocation(); // Recarrega os lugares próximos se a busca for apagada
+                  _getUserLocation();
                 } else {
-                  _buscarLugares(0.0, 0.0, query: text); // Busca por texto
+                  _buscarLugares(0.0, 0.0, query: text);
                 }
               },
             ),
@@ -176,35 +172,52 @@ class _BuscaLugaresScreenState extends State<BuscaLugaresScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: ListTile(
-                        leading: lugar['icon'] != null
-                            ? Image.network(
-                          lugar['icon'],
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.cover,
-                        )
-                            : Icon(
-                          Icons.place,
-                          color: Colors.blue[800],
-                          size: 40,
-                        ),
-                        title: Text(
-                          lugar['name'] ?? 'Nome não disponível',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: lugar['icon'] != null
+                                ? Image.network(
+                              lugar['icon'],
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            )
+                                : Icon(
+                              Icons.place,
+                              color: Colors.blue[800],
+                              size: 40,
+                            ),
+                            title: Text(
+                              lugar['name'] ?? 'Nome não disponível',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            subtitle: Text(
+                              lugar['formatted_address'] ?? 'Endereço não disponível',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            trailing: Icon(
+                              acessivel ? Icons.accessible : Icons.not_accessible,
+                              color: acessivel ? Colors.green : Colors.red,
+                            ),
+                            onTap: () => _navegarParaDetalhes(lugar),
                           ),
-                        ),
-                        subtitle: Text(
-                          lugar['formatted_address'] ?? 'Endereço não disponível',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        trailing: Icon(
-                          acessivel ? Icons.accessible : Icons.not_accessible,
-                          color: acessivel ? Colors.green : Colors.red,
-                        ),
-                        onTap: () => _navegarParaDetalhes(lugar),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                            child: ElevatedButton(
+                              onPressed: () => _navegarParaDetalhes(lugar),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue[800],
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text('Ver Detalhes'),
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },

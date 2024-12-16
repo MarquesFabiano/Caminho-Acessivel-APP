@@ -16,7 +16,7 @@ class _MapaScreenState extends State<MapaScreen> {
   late GoogleMapController mapController;
   LatLng _currentLocation = const LatLng(0.0, 0.0);
   Set<Marker> _markers = Set();
-  double _radius = 5000.0; // Raio de 5 km
+  double _radius = 5000.0;
 
   @override
   void initState() {
@@ -38,8 +38,6 @@ class _MapaScreenState extends State<MapaScreen> {
         });
         _carregarLugaresNoMapa();
       }
-    } else {
-      print('Permissão de localização negada');
     }
   }
 
@@ -62,10 +60,20 @@ class _MapaScreenState extends State<MapaScreen> {
               position: LatLng(lat, lon),
               icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
               onTap: () async {
+                String telefone = doc['telefone'] ?? 'Não disponível';
+                String website = doc['website'] ?? 'Não disponível';
+
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DetalhesLugarScreen(latLng: LatLng(lat, lon), idLugar: id),
+                    builder: (context) => DetalhesLugarScreen(
+                      nome: doc['nome'],
+                      endereco: doc['endereco'],
+                      avaliacao: doc['avaliacao'].toDouble(),
+                      acessibilidade: List<String>.from(doc['acessibilidade']),
+                      telefone: telefone,
+                      website: website,
+                    ),
                   ),
                 );
               },
@@ -82,7 +90,7 @@ class _MapaScreenState extends State<MapaScreen> {
     double dLat = (lat2 - lat1) * rad;
     double dLon = (lon2 - lon1) * rad;
     double a = (0.5 - (cos(dLat) / 2.0)) + cos(lat1 * rad) * cos(lat2 * rad) * (1 - cos(dLon)) / 2.0;
-    return 12742.0 * asin(sqrt(a)) * 1000; // Resultado em metros
+    return 12742.0 * asin(sqrt(a)) * 1000;
   }
 
   void _onMapCreated(GoogleMapController controller) {
